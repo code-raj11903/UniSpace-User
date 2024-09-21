@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/home_page.dart';
-import 'package:flutter_application_1/register_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../home/home_page.dart'; // Import your HomePage
+import 'register_page.dart'; // Import your RegisterPage
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  LoginPage({super.key});
+
   Future<void> loginUser(BuildContext context) async {
     // Replace with your backend URL
-    final String apiUrl = "http://localhost:4000/api/auth/login";
+    const String apiUrl = "http://localhost:4000/api/auth/login";
 
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -47,7 +49,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Login',
           style: TextStyle(fontSize: 24),
         ),
@@ -57,19 +59,19 @@ class LoginPage extends StatelessWidget {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               'Welcome Back!',
               style: TextStyle(
                 fontSize: 28,
@@ -78,7 +80,7 @@ class LoginPage extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             TextField(
               controller: emailController,
               decoration: InputDecoration(
@@ -88,10 +90,10 @@ class LoginPage extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                prefixIcon: Icon(Icons.email, color: Color(0xFF7C4DFF)),
+                prefixIcon: const Icon(Icons.email, color: Color(0xFF7C4DFF)),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: passwordController,
               obscureText: true,
@@ -102,29 +104,28 @@ class LoginPage extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                prefixIcon: Icon(Icons.lock, color: Color(0xFF7C4DFF)),
+                prefixIcon: const Icon(Icons.lock, color: Color(0xFF7C4DFF)),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
-                onPressed: () =>
-                    loginUser(context), // Call loginUser on button press
+                onPressed: () => loginUser(context),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Color(0xFF7C4DFF),
+                  foregroundColor: const Color(0xFF7C4DFF),
                   backgroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Login',
                   style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Center(
               child: TextButton(
                 onPressed: () {
@@ -135,9 +136,9 @@ class LoginPage extends StatelessWidget {
                   );
                 },
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                 ),
-                child: Text(
+                child: const Text(
                   'Create account',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),

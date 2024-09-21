@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/home_page.dart';
 import 'package:intl/intl.dart';
-import 'cart_page.dart';
-import 'profile_page.dart';
-import 'checkout_page.dart'; // For Buy Now functionality
-import 'order_history_page.dart'; // Order History Page
+import 'package:flutter_application_1/home/home_page.dart' as home;
+import 'package:flutter_application_1/orders/cart_page.dart' as cart;
+import 'package:flutter_application_1/account/profile_page.dart' as profile;
+import 'package:flutter_application_1/orders/order_history_page.dart' as orderHistory;
+import '../checkout/checkout_page.dart'; // For Buy Now functionality
 
 class FilterSortPage extends StatefulWidget {
   final String resource;
 
-  FilterSortPage({required this.resource});
+  const FilterSortPage({super.key, required this.resource});
 
   @override
   _FilterSortPageState createState() => _FilterSortPageState();
@@ -46,25 +46,25 @@ class _FilterSortPageState extends State<FilterSortPage> {
       case 0:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => home.HomePage()), // Use prefix for HomePage
         );
         break;
       case 1:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => CartPage()),
+          MaterialPageRoute(builder: (context) => cart.CartPage()), // Use prefix for CartPage
         );
         break;
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => OrderHistoryPage()),
+          MaterialPageRoute(builder: (context) => orderHistory.OrderHistoryPage()), // Use prefix for OrderHistoryPage
         );
         break;
       case 3:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProfilePage()),
+          MaterialPageRoute(builder: (context) => profile.ProfilePage()), // Use prefix for ProfilePage
         );
         break;
     }
@@ -101,7 +101,7 @@ class _FilterSortPageState extends State<FilterSortPage> {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
             begin: Alignment.topCenter,
@@ -111,7 +111,7 @@ class _FilterSortPageState extends State<FilterSortPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SizedBox(height: 80),
+            const SizedBox(height: 80),
             // Start Date and End Date Bar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -119,7 +119,7 @@ class _FilterSortPageState extends State<FilterSortPage> {
                 GestureDetector(
                   onTap: () => _selectDate(context, true),
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
@@ -128,14 +128,14 @@ class _FilterSortPageState extends State<FilterSortPage> {
                       _startDate == null
                           ? 'Start Date'
                           : 'Start: ${formatter.format(_startDate!)}',
-                      style: TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () => _selectDate(context, false),
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
@@ -144,13 +144,13 @@ class _FilterSortPageState extends State<FilterSortPage> {
                       _endDate == null
                           ? 'End Date'
                           : 'End: ${formatter.format(_endDate!)}',
-                      style: TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Displaying available resources with Buy Now and Add to Cart buttons
             Expanded(
               child: ListView.builder(
@@ -158,22 +158,22 @@ class _FilterSortPageState extends State<FilterSortPage> {
                 itemBuilder: (context, index) {
                   final resource = resources[index];
                   return Card(
-                    margin: EdgeInsets.symmetric(vertical: 10),
+                    margin: const EdgeInsets.symmetric(vertical: 10),
                     elevation: 5,
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(20),
-                      title: Text(resource['name'], style: TextStyle(fontSize: 20)),
+                      contentPadding: const EdgeInsets.all(20),
+                      title: Text(resource['name'], style: const TextStyle(fontSize: 20)),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(resource['description'], style: TextStyle(fontSize: 16)),
-                          SizedBox(height: 5),
+                          Text(resource['description'], style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: 5),
                           Text('Availability: ${resource['availability']}',
                               style: TextStyle(
                                   color: resource['availability'] == 'Available'
                                       ? Colors.green
                                       : Colors.red)),
-                          SizedBox(height: 5),
+                          const SizedBox(height: 5),
                           Text('Rating: ${resource['rating']}'),
                         ],
                       ),
@@ -189,19 +189,19 @@ class _FilterSortPageState extends State<FilterSortPage> {
                                 ),
                               );
                             },
-                            child: Text('Buy Now'),
+                            child: const Text('Buy Now'),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => CartPage(), // Navigate to CartPage for Add to Cart
+                                  builder: (context) => cart.CartPage(), // Navigate to CartPage for Add to Cart
                                 ),
                               );
                             },
-                            child: Text('Add to Cart'),
+                            child: const Text('Add to Cart'),
                           ),
                         ],
                       ),
@@ -216,7 +216,7 @@ class _FilterSortPageState extends State<FilterSortPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -234,7 +234,7 @@ class _FilterSortPageState extends State<FilterSortPage> {
             label: 'Profile',
           ),
         ],
-        selectedItemColor: Color(0xFF7C4DFF),
+        selectedItemColor: const Color(0xFF7C4DFF),
         unselectedItemColor: Colors.grey,
       ),
     );
