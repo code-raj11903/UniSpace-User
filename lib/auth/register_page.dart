@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_application_1/login_page.dart'; // Import your LoginPage
+import 'package:flutter_application_1/auth/login_page.dart'; // Import your LoginPage
 
 class RegisterPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -10,9 +10,11 @@ class RegisterPage extends StatelessWidget {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController mobileController = TextEditingController();
 
+  RegisterPage({super.key});
+
   Future<void> registerUser(BuildContext context) async {
     // Replace with your backend URL
-    final String apiUrl = "http://localhost:4000/api/auth/register"; 
+    const String apiUrl = "http://localhost:4000/api/auth/register";
 
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -52,27 +54,27 @@ class RegisterPage extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Register', style: TextStyle(fontSize: 24)),
+        title: const Text('Register', style: TextStyle(fontSize: 24)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 80),
-              Text('Create Account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-              SizedBox(height: 40),
+              const SizedBox(height: 80),
+              const Text('Create Account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              const SizedBox(height: 40),
               TextField(
                 controller: fullNameController,
                 decoration: InputDecoration(
@@ -80,10 +82,10 @@ class RegisterPage extends StatelessWidget {
                   fillColor: Colors.white.withOpacity(0.9),
                   labelText: 'Full Name',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: Icon(Icons.person, color: Color(0xFF7C4DFF)),
+                  prefixIcon: const Icon(Icons.person, color: Color(0xFF7C4DFF)),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -91,10 +93,10 @@ class RegisterPage extends StatelessWidget {
                   fillColor: Colors.white.withOpacity(0.9),
                   labelText: 'Email',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: Icon(Icons.email, color: Color(0xFF7C4DFF)),
+                  prefixIcon: const Icon(Icons.email, color: Color(0xFF7C4DFF)),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: mobileController,
                 decoration: InputDecoration(
@@ -102,10 +104,10 @@ class RegisterPage extends StatelessWidget {
                   fillColor: Colors.white.withOpacity(0.9),
                   labelText: 'Mobile Number',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: Icon(Icons.phone, color: Color(0xFF7C4DFF)),
+                  prefixIcon: const Icon(Icons.phone, color: Color(0xFF7C4DFF)),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: addressController,
                 decoration: InputDecoration(
@@ -113,10 +115,10 @@ class RegisterPage extends StatelessWidget {
                   fillColor: Colors.white.withOpacity(0.9),
                   labelText: 'Address',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: Icon(Icons.home, color: Color(0xFF7C4DFF)),
+                  prefixIcon: const Icon(Icons.home, color: Color(0xFF7C4DFF)),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: passwordController,
                 obscureText: true,
@@ -125,22 +127,22 @@ class RegisterPage extends StatelessWidget {
                   fillColor: Colors.white.withOpacity(0.9),
                   labelText: 'Password',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: Icon(Icons.lock, color: Color(0xFF7C4DFF)),
+                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF7C4DFF)),
                 ),
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Center(
                 child: ElevatedButton(
                   onPressed: () => registerUser(context),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Color(0xFF7C4DFF),
+                    foregroundColor: const Color(0xFF7C4DFF),
                     backgroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text('Register', style: TextStyle(fontSize: 18)),
+                  child: const Text('Register', style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],

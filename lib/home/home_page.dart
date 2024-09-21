@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/orders/order_history_page.dart' as orderHistory;
+import 'package:flutter_application_1/account/profile_page.dart' as profile;
+import 'package:flutter_application_1/orders/cart_page.dart' as cart;
 import 'filter_sort_page.dart';
-import 'cart_page.dart';
-import 'profile_page.dart';
-import 'order_history_page.dart'; // Order History Page
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -30,27 +32,27 @@ class _HomePageState extends State<HomePage> {
 
     switch (index) {
       case 0:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
         );
         break;
       case 1:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CartPage()),
+          MaterialPageRoute(builder: (context) => cart.CartPage()), // Use prefix for CartPage
         );
         break;
       case 2:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OrderHistoryPage()),
+          MaterialPageRoute(builder: (context) => orderHistory.OrderHistoryPage()), // Use prefix for OrderHistoryPage
         );
         break;
       case 3:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ProfilePage()),
+          MaterialPageRoute(builder: (context) => profile.ProfilePage()), // Use prefix for ProfilePage
         );
         break;
     }
@@ -70,13 +72,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: const Text('Home'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
             begin: Alignment.topCenter,
@@ -86,7 +88,7 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SizedBox(height: 80),
+            const SizedBox(height: 80),
             // Search bar with dropdown options
             Autocomplete<String>(
               optionsBuilder: (TextEditingValue textEditingValue) {
@@ -111,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    prefixIcon: Icon(Icons.search, color: Color(0xFF7C4DFF)),
+                    prefixIcon: const Icon(Icons.search, color: Color(0xFF7C4DFF)),
                   ),
                 );
               },
@@ -122,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -140,7 +142,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Profile',
           ),
         ],
-        selectedItemColor: Color(0xFF7C4DFF),
+        selectedItemColor: const Color(0xFF7C4DFF),
         unselectedItemColor: Colors.grey,
       ),
     );
