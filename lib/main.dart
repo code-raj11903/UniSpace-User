@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/mongo_service.dart';
 import 'auth/login_page.dart'; // Ensure this import is correct
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await MongoDatabase.connect();
   runApp(MyApp());
 }
 
@@ -16,9 +19,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: LoginPage(), // LoginPage should now be recognized
-      
-);
-
-  
+    ); // Added closing parenthesis here
   }
 }

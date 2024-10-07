@@ -1,46 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../home/home_page.dart'; // Import your HomePage
-import 'register_page.dart'; // Import your RegisterPage
+import '../home/home_page.dart';
+import 'register_page.dart';
+import '../mongo_service.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginPage({super.key});
+  LoginPage({Key? key}) : super(key: key);
 
   Future<void> loginUser(BuildContext context) async {
-    // Replace with your backend URL
-    const String apiUrl = "http://localhost:4000/api/auth/login";
+    String connectionStatus = await MongoDatabase.connect();
+    print(connectionStatus);
 
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode({
-        'email': emailController.text,
-        'password': passwordController.text,
-      }),
-    );
+    if (connectionStatus == 'Connection successful!') {
+      var user = await MongoDatabase.authenticateUser(
+          emailController.text, passwordController.text);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print("Login successful, Token: ${data['token']}");
-
-      // Navigate to Home Page after successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
+      if (user != null) {
+        print("Login successful");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(user: user)),
+        );
+      } else {
+        print("Failed to login: Invalid credentials");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: Invalid email or password")),
+        );
+      }
     } else {
-      // Display an error message
-      final errorMessage = jsonDecode(response.body)['message'];
-      print("Failed to login: $errorMessage");
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $errorMessage")),
+        SnackBar(content: Text("Error: $connectionStatus")),
       );
     }
   }
@@ -49,15 +40,9 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Login',
-          style: TextStyle(fontSize: 24),
-        ),
+        title: const Text('Login', style: TextStyle(fontSize: 24)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
-      extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -114,34 +99,30 @@ class LoginPage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   foregroundColor: const Color(0xFF7C4DFF),
                   backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Login',
-                  style: TextStyle(fontSize: 18),
-                ),
+                child: const Text('Login', style: TextStyle(fontSize: 18)),
               ),
             ),
             const SizedBox(height: 10),
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Navigate to Register Page
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => RegisterPage()),
                   );
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                 ),
-                child: const Text(
-                  'Create account',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
+                child: const Text('Create account',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
             ),
           ],

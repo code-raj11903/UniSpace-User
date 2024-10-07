@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/orders/order_history_page.dart' as orderHistory;
+import 'package:flutter_application_1/orders/order_history_page.dart'
+    as orderHistory;
 import 'package:flutter_application_1/orders/cart_page.dart' as cart;
 import 'package:flutter_application_1/account/personal_info_page.dart';
 import 'package:flutter_application_1/account/account_settings_page.dart';
 import 'package:flutter_application_1/home/home_page.dart' as home;
-import 'package:flutter_application_1/account/profile_page.dart' as profile; // Correct prefix for ProfilePage
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+  final Map<String, dynamic> user; // Store user data
+
+  const ProfilePage({Key? key, required this.user}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -41,20 +43,20 @@ class ProfilePage extends StatelessWidget {
               child: Icon(Icons.person, size: 50, color: Color(0xFF7C4DFF)),
             ),
             const SizedBox(height: 10),
-            const Center(
+            Center(
               child: Text(
-                'John Doe',
-                style: TextStyle(
+                user['name'] ?? 'No Name', // Display user name
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
-            const Center(
+            Center(
               child: Text(
-                'john.doe@example.com',
-                style: TextStyle(
+                user['email'] ?? 'No Email', // Display user email
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white70,
                 ),
@@ -66,9 +68,15 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.history,
               title: 'Order History',
               onTap: () {
+                // Pass userId when navigating
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => orderHistory.OrderHistoryPage()),
+                  MaterialPageRoute(
+                    builder: (context) => orderHistory.OrderHistoryPage(
+                      userId:
+                          user['_id'] ?? '', // Assuming '_id' is the user ID
+                    ),
+                  ),
                 );
               },
             ),
@@ -77,9 +85,13 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.person,
               title: 'Personal Information',
               onTap: () {
+                // Pass user data to PersonalInfoPage
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PersonalInfoPage()),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PersonalInfoPage(user: user), // Pass user data
+                  ),
                 );
               },
             ),
@@ -90,7 +102,9 @@ class ProfilePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AccountSettingsPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const AccountSettingsPage(),
+                  ),
                 );
               },
             ),
@@ -98,27 +112,42 @@ class ProfilePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3, // Set this to the correct index based on the current page (Profile is 3)
+        currentIndex:
+            3, // Set this to the correct index based on the current page (Profile is 3)
         selectedItemColor: Colors.deepPurple,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           switch (index) {
             case 0:
+              // Pass the user object to HomePage
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => home.HomePage()), // Navigate to HomePage
+                MaterialPageRoute(
+                  builder: (context) => home.HomePage(
+                    user: user, // Navigate to HomePage with user
+                  ),
+                ),
               );
               break;
             case 1:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => cart.CartPage()), // Navigate to CartPage
+                MaterialPageRoute(
+                  builder: (context) => cart.CartPage(
+                    userId: user['_id'] ?? '', // Pass userId to CartPage
+                  ),
+                ),
               );
               break;
             case 2:
+              // Pass userId when navigating
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => orderHistory.OrderHistoryPage()), // Navigate to OrderHistoryPage
+                MaterialPageRoute(
+                  builder: (context) => orderHistory.OrderHistoryPage(
+                    userId: user['_id'] ?? '', // Assuming '_id' is the user ID
+                  ),
+                ),
               );
               break;
             case 3:

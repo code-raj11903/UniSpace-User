@@ -1,37 +1,54 @@
 import 'package:flutter/material.dart';
-import 'profile_page.dart';
+import '../account/profile_page.dart';
 
 class PersonalInfoPage extends StatefulWidget {
-  const PersonalInfoPage({super.key});
+  final Map<String, dynamic> user; // Add user parameter
+
+  const PersonalInfoPage({Key? key, required this.user}) : super(key: key);
 
   @override
   _PersonalInfoPageState createState() => _PersonalInfoPageState();
 }
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
-  final TextEditingController _nameController = TextEditingController(text: 'John Doe');
-  final TextEditingController _mobileController = TextEditingController(text: '+1234567890');
-  final TextEditingController _emailController = TextEditingController(text: 'john.doe@example.com');
-  final TextEditingController _addressController = TextEditingController(text: '123 Main St');
+  late TextEditingController _nameController;
+  late TextEditingController _mobileController;
+  late TextEditingController _emailController;
+  late TextEditingController _addressController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers with user data
+    _nameController = TextEditingController(text: widget.user['name']);
+    _mobileController = TextEditingController(text: widget.user['mobile']);
+    _emailController = TextEditingController(text: widget.user['email']);
+    _addressController = TextEditingController(text: widget.user['address']);
+  }
 
   void _saveInfo(BuildContext context) {
-    // Logic to save user info (you can update this with backend API calls)
     String savedName = _nameController.text;
     String savedMobile = _mobileController.text;
     String savedEmail = _emailController.text;
     String savedAddress = _addressController.text;
 
-    // Show confirmation message with the saved details
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Details Saved:\nName: $savedName\nMobile: $savedMobile\nEmail: $savedEmail\nAddress: $savedAddress'),
+        content: Text(
+            'Details Saved:\nName: $savedName\nMobile: $savedMobile\nEmail: $savedEmail\nAddress: $savedAddress'),
       ),
     );
 
-    // Redirect back to Profile Page
+    Map<String, dynamic> user = {
+      'name': savedName,
+      'mobile': savedMobile,
+      'email': savedEmail,
+      'address': savedAddress,
+    };
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => ProfilePage()),
+      MaterialPageRoute(builder: (context) => ProfilePage(user: user)),
     );
   }
 
@@ -61,7 +78,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 80), // Space for AppBar
+              const SizedBox(height: 80),
               const Text(
                 'Edit Your Information',
                 style: TextStyle(
@@ -98,7 +115,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  _saveInfo(context); // Save and Redirect to Profile Page
+                  _saveInfo(context);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -108,7 +125,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Save',
                   style: TextStyle(fontSize: 18),
                 ),
