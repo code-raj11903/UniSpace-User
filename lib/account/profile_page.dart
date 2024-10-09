@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/orders/order_history_page.dart'
-    as orderHistory;
-import 'package:flutter_application_1/orders/cart_page.dart' as cart;
-import 'package:flutter_application_1/account/personal_info_page.dart';
-import 'package:flutter_application_1/account/account_settings_page.dart';
-import 'package:flutter_application_1/home/home_page.dart' as home;
+import 'package:UniSpace/orders/order_history_page.dart' as orderHistory;
+import 'package:UniSpace/orders/cart_page.dart' as cart;
+import 'package:UniSpace/account/personal_info_page.dart';
+import 'package:UniSpace/account/account_settings_page.dart';
+import 'package:UniSpace/home/home_page.dart' as home;
 
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> user; // Store user data
 
-  const ProfilePage({Key? key, required this.user}) : super(key: key);
+  const ProfilePage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {

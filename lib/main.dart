@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/mongo_service.dart';
+import 'mongo_service.dart';
 import 'auth/login_page.dart'; // Ensure this import is correct
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MongoDatabase.connect();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

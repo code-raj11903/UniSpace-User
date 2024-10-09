@@ -8,7 +8,7 @@ import '../mongo_service.dart';
 class HomePage extends StatefulWidget {
   final Map<String, dynamic> user;
 
-  const HomePage({Key? key, required this.user}) : super(key: key);
+  const HomePage({super.key, required this.user});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -81,18 +81,21 @@ class _HomePageState extends State<HomePage> {
         title: TextField(
           onChanged: onSearchChanged,
           style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Search Resources...',
-            hintStyle: const TextStyle(color: Colors.white54),
+            hintStyle: TextStyle(color: Colors.white54),
             border: InputBorder.none,
-            prefixIcon: const Icon(Icons.search, color: Colors.white),
+            prefixIcon: Icon(Icons.search, color: Colors.white),
           ),
         ),
         backgroundColor: const Color(0xFF7C4DFF),
       ),
-      body: ResourceListWidget(
-        searchQuery: searchQuery,
-        userId: widget.user['id'] as String? ?? '',
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ResourceListWidget(
+          searchQuery: searchQuery,
+          userId: widget.user['id'] as String? ?? '',
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

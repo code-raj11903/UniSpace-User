@@ -57,9 +57,20 @@ class ResourceCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Price: \$${resource['price']}', // Actual price
+                'Price: ₹${resource['price_per_day']?.toString() ?? 'N/A'}', // Display price in rupees
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                resource['availability']
+                    ? 'Available'
+                    : 'Booked', // Show availability
+                style: TextStyle(
+                    color:
+                        resource['availability'] ? Colors.green : Colors.red),
               ),
             ),
           ],

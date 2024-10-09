@@ -6,7 +6,7 @@ import '../orders/order_summary_page.dart';
 class CartPage extends StatefulWidget {
   final String userId;
 
-  const CartPage({Key? key, required this.userId}) : super(key: key);
+  const CartPage({super.key, required this.userId});
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -65,16 +65,16 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Cart'),
+        title: const Text('Your Cart'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context); // Navigate back to the previous screen
           },
         ),
       ),
       body: cartItems.isEmpty
-          ? Center(child: Text('No items in cart'))
+          ? const Center(child: Text('No items in cart'))
           : ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
@@ -83,7 +83,7 @@ class _CartPageState extends State<CartPage> {
                   title: Text(item.name),
                   subtitle: Text('Quantity: ${item.quantity}'),
                   trailing: IconButton(
-                    icon: Icon(Icons.remove_circle),
+                    icon: const Icon(Icons.remove_circle),
                     onPressed: () => removeFromCart(item.productId),
                   ),
                 );
@@ -93,7 +93,7 @@ class _CartPageState extends State<CartPage> {
         padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
           onPressed: cartItems.isNotEmpty ? checkout : null,
-          child: Text('Proceed to Checkout'),
+          child: const Text('Proceed to Checkout'),
         ),
       ),
     );

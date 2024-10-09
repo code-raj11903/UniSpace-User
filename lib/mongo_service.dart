@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'package:mongo_dart/mongo_dart.dart';
-import 'package:flutter_application_1/cart/cart_item.dart';
+import 'cart/cart_item.dart';
 
 class MongoDatabase {
   static late Db db;
@@ -89,7 +89,8 @@ class MongoDatabase {
     try {
       await _ensureConnection();
       var collection = db.collection(resourceCollectionName);
-      return await collection.find().toList();
+      // Fetch only available resources
+      return await collection.find(where.eq('availability', true)).toList();
     } catch (e) {
       throw Exception('Failed to fetch resources: $e');
     }
@@ -248,6 +249,40 @@ class MongoDatabase {
       print("Database connection closed.");
     } else {
       print("No database connection to close.");
+    }
+  }
+
+  // Method to book a resource and update its availability
+  static Future<String> bookResource(String resourceId) async {
+    try {
+      await _ensureConnection();
+      // Check if resourceId is a valid ObjectId
+      if (resourceId.length != 24) {
+        throw Exception('Invalid resourceId: Expected 24 characters.');
+      }
+
+      // Log the resourceId being passed
+      print("Attempting to book Resource ID: $resourceId");
+
+      // Set resource availability to false
+      var collection = db.collection(resourceCollectionName);
+      var result = await collection.updateOne(
+        where.eq('_id', ObjectId.fromHexString(resourceId)),
+        modify.set('availability', false),
+      );
+
+      // Log the result of the update operation
+      print("Update result: ${result.toString()}");
+
+      // Check if any document was modified
+      if (result.isAcknowledged && result.nModified > 0) {
+        return 'Resource booked successfully!';
+      } else {
+        return 'Failed to book resource: Resource may not exist or is already booked.';
+      }
+    } catch (e) {
+      print("Error booking resource: $e"); // Log the error for debugging
+      return 'Failed to book resource: $e';
     }
   }
 }

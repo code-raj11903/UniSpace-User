@@ -7,12 +7,12 @@ class ResourceListWidget extends StatelessWidget {
   final String userId;
 
   const ResourceListWidget(
-      {Key? key, required this.searchQuery, required this.userId})
-      : super(key: key);
+      {super.key, required this.searchQuery, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
+      // Fetch available resources
       future: MongoDatabase.fetchResources(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -25,7 +25,8 @@ class ResourceListWidget extends StatelessWidget {
         final resources = snapshot.data ?? [];
         final filteredResources = resources.where((resource) {
           final resourceName = resource['name'].toString().toLowerCase();
-          return resourceName.contains(searchQuery.toLowerCase());
+          return resource['availability'] == true && // Check for availability
+              resourceName.contains(searchQuery.toLowerCase());
         }).toList();
 
         if (filteredResources.isEmpty) {

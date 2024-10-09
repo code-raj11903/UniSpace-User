@@ -6,14 +6,14 @@ import '../account/profile_page.dart' as account; // Alias for ProfilePage
 class OrderHistoryPage extends StatefulWidget {
   final String userId; // Add userId as a required parameter
 
-  const OrderHistoryPage({Key? key, required this.userId}) : super(key: key);
+  const OrderHistoryPage({super.key, required this.userId});
 
   @override
   _OrderHistoryPageState createState() => _OrderHistoryPageState();
 }
 
 class _OrderHistoryPageState extends State<OrderHistoryPage> {
-  int _selectedIndex =
+  final int _selectedIndex =
       2; // Set this to 2 because Order History is the active page
 
   // Navigation based on the selected bottom navigation bar item
