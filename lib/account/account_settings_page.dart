@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-// Import your LoginPage and RegisterPage directly
-import '../auth/login_page.dart';
-import '../auth/register_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountSettingsPage extends StatelessWidget {
   const AccountSettingsPage({super.key});
@@ -32,13 +29,13 @@ class AccountSettingsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 80), // Space for AppBar
+            const SizedBox(height: 80),
             _buildSettingsOption(
               context,
               icon: Icons.logout,
               title: 'Log Out',
               onTap: () {
-                _showLogoutDialog(context); // Show logout confirmation dialog
+                _showLogoutDialog(context);
               },
             ),
             const SizedBox(height: 20),
@@ -47,7 +44,7 @@ class AccountSettingsPage extends StatelessWidget {
               icon: Icons.delete,
               title: 'Delete Account',
               onTap: () {
-                _showDeleteAccountDialog(context); // Show delete account confirmation dialog
+                _showDeleteAccountDialog(context);
               },
             ),
           ],
@@ -56,8 +53,12 @@ class AccountSettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsOption(BuildContext context,
-      {required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildSettingsOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -75,7 +76,6 @@ class AccountSettingsPage extends StatelessWidget {
     );
   }
 
-  // Logout Confirmation Dialog
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -89,7 +89,7 @@ class AccountSettingsPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Dismiss the dialog
+                Navigator.pop(context);
               },
               child: const Text(
                 "Cancel",
@@ -97,13 +97,12 @@ class AccountSettingsPage extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Dismiss the dialog
-                // Navigate to LoginPage directly without named routes
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) =>  LoginPage()),
-                );
+              onPressed: () async {
+                // Log out and clear shared preferences
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('loggedInUserId'); // Clear session
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/login');
               },
               child: const Text(
                 "Yes",
@@ -116,7 +115,6 @@ class AccountSettingsPage extends StatelessWidget {
     );
   }
 
-  // Delete Account Confirmation Dialog
   void _showDeleteAccountDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -126,11 +124,12 @@ class AccountSettingsPage extends StatelessWidget {
             "Delete Account",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          content: const Text("Are you sure you want to delete your account?"),
+          content: const Text(
+              "Are you sure you want to delete your account? This action cannot be undone."),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Dismiss the dialog
+                Navigator.pop(context);
               },
               child: const Text(
                 "Cancel",
@@ -138,13 +137,13 @@ class AccountSettingsPage extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Dismiss the dialog
-                // Navigate to RegisterPage directly without named routes
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterPage()),
-                );
+              onPressed: () async {
+                // Delete account logic here (pseudo code)
+                // await MongoDatabase.deleteAccount(userId);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('loggedInUserId'); // Clear session
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/register');
               },
               child: const Text(
                 "Yes",

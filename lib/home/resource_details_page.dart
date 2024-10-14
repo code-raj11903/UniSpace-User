@@ -8,10 +8,10 @@ class ResourceDetailsPage extends StatelessWidget {
   final String userId;
 
   const ResourceDetailsPage({
-    Key? key,
+    super.key,
     required this.resource,
     required this.userId,
-  }) : super(key: key);
+  });
 
   void addToCart(BuildContext context) async {
     try {
@@ -49,6 +49,7 @@ class ResourceDetailsPage extends StatelessWidget {
           resourceId: resource['_id'].toString(),
           resourceName: resource['name'],
           resourcePrice: (resource['price_per_day'] as num).toDouble(),
+          userId: userId, // Pass the userId to PaymentPage
         ),
       ),
     );
@@ -66,18 +67,19 @@ class ResourceDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Displaying resource image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                resource['image_url'] ?? '',
-                fit: BoxFit.cover,
-                height: 250,
-                width: double.infinity,
+            Hero(
+              tag: resource['_id'],
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  resource['image_url'] ?? '',
+                  fit: BoxFit.cover,
+                  height: 250,
+                  width: double.infinity,
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            // Resource Name
             Text(
               resource['name'] ?? 'No name available',
               style: const TextStyle(
@@ -87,7 +89,6 @@ class ResourceDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Price Details
             Text(
               'Price per Day: ₹${(resource['price_per_day'] ?? 0).toString()}',
               style: const TextStyle(
@@ -97,7 +98,6 @@ class ResourceDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Resource Description
             Text(
               resource['description'] ?? 'No description available',
               style: const TextStyle(
@@ -106,7 +106,6 @@ class ResourceDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Additional Resource Information
             _buildInfoRow(
               icon: Icons.location_on,
               label: 'Location',
@@ -123,14 +122,13 @@ class ResourceDetailsPage extends StatelessWidget {
               value: resource['available_from'] ?? 'Not specified',
             ),
             const SizedBox(height: 20),
-            // Actions: Add to Cart and Buy Now
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton(
                   onPressed: () => addToCart(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 12,
@@ -145,7 +143,7 @@ class ResourceDetailsPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () => buyNow(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color.fromARGB(255, 46, 196, 51),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 12,
@@ -165,7 +163,6 @@ class ResourceDetailsPage extends StatelessWidget {
     );
   }
 
-  // Helper function to build information row
   Widget _buildInfoRow(
       {required IconData icon, required String label, required String value}) {
     return Padding(

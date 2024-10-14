@@ -7,9 +7,10 @@ class ProductDetailsPage extends StatelessWidget {
   final String productId;
   final String name;
   final double price;
-  final String userId; // Expecting the userId to be a string
+  final String userId;
 
-  ProductDetailsPage({
+  const ProductDetailsPage({
+    super.key,
     required this.productId,
     required this.name,
     required this.price,
@@ -18,22 +19,13 @@ class ProductDetailsPage extends StatelessWidget {
 
   Future<void> addToCart(BuildContext context) async {
     try {
-      // Extract the actual userId from ObjectId format
       String actualUserId =
           userId.replaceAll('ObjectId("', '').replaceAll('")', '');
-
-      print("Actual User ID: $actualUserId"); // Debugging statement
-
-      if (actualUserId.isEmpty || actualUserId.length != 24) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Invalid userId format.')));
-        return;
-      }
 
       final cartItem = CartItem(
         productId: productId,
         name: name,
-        price: price.toDouble(), // Ensure price is a double
+        price: price,
         quantity: 1,
       );
 
@@ -47,14 +39,14 @@ class ProductDetailsPage extends StatelessWidget {
   }
 
   void buyNow(BuildContext context) {
-    // Navigate to payment page with resource details
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PaymentPage(
-          resourceId: productId, // Pass resourceId
-          resourceName: name, // Pass resourceName
-          resourcePrice: price, // Pass resourcePrice
+          resourceId: productId,
+          resourceName: name,
+          resourcePrice: price,
+          userId: userId, // Pass the userId to PaymentPage
         ),
       ),
     );
@@ -69,18 +61,19 @@ class ProductDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: TextStyle(fontSize: 24)),
-            Text('\$${price.toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 20)),
-            Spacer(),
+            Text(name, style: const TextStyle(fontSize: 24)),
+            Text('₹${price.toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 20)),
+            const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
                     onPressed: () => addToCart(context),
-                    child: Text('Add to Cart')),
+                    child: const Text('Add to Cart')),
                 ElevatedButton(
-                    onPressed: () => buyNow(context), child: Text('Buy Now')),
+                    onPressed: () => buyNow(context),
+                    child: const Text('Buy Now')),
               ],
             )
           ],

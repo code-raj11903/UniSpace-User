@@ -1,4 +1,4 @@
-name: UniSpace
+name: flutter_application_1
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   mongo_dart: ^0.10.3
+  provider: ^6.0.0 # State management provider
+  shared_preferences: ^2.0.9 # Caching helper
   http: ^1.2.2          # Check for newer versions if needed
   intl: ^0.19.0          # Good for internationalization
   bson: ^5.0.4
@@ -17,7 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0   # Good linting package for Flutter projects
+  flutter_lints: ^5.0.0   # Good linting package for Flutter projects
 
 flutter:
   uses-material-design: true

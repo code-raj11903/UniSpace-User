@@ -4,12 +4,12 @@ import '../orders/cart_page.dart';
 class CartButton extends StatelessWidget {
   final String userId;
 
-  const CartButton({Key? key, required this.userId}) : super(key: key);
+  const CartButton({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.shopping_cart),
+      icon: const Icon(Icons.shopping_cart, color: Colors.deepPurple),
       onPressed: () {
         Navigator.push(
           context,

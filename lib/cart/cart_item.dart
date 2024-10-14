@@ -3,31 +3,35 @@ class CartItem {
   final String name;
   final double price;
   final int quantity;
+  final String? imageUrl; // New property for the item's image URL
 
   CartItem({
     required this.productId,
     required this.name,
     required this.price,
     required this.quantity,
+    this.imageUrl,
   });
 
-  factory CartItem.fromMap(Map<String, dynamic> data) {
+  // Create a CartItem instance from a map
+  factory CartItem.fromMap(Map<String, dynamic> map) {
     return CartItem(
-      productId: data['product_id'] as String,
-      name: data['name'] as String,
-      price: (data['price'] is double)
-          ? data['price'] as double
-          : (data['price'] as num).toDouble(),
-      quantity: data['quantity'] as int,
+      productId: map['productId'] as String,
+      name: map['name'] as String,
+      price: (map['price'] as num).toDouble(),
+      quantity: map['quantity'] as int,
+      imageUrl: map['imageUrl'] as String?, // Handle null case
     );
   }
 
+  // Convert a CartItem instance to a map
   Map<String, dynamic> toMap() {
     return {
-      'product_id': productId,
+      'productId': productId,
       'name': name,
       'price': price,
       'quantity': quantity,
+      'imageUrl': imageUrl,
     };
   }
 }

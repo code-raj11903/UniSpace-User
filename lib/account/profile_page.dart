@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:UniSpace/orders/order_history_page.dart' as orderHistory;
-import 'package:UniSpace/orders/cart_page.dart' as cart;
-import 'package:UniSpace/account/personal_info_page.dart';
-import 'package:UniSpace/account/account_settings_page.dart';
-import 'package:UniSpace/home/home_page.dart' as home;
+import '../home/home_page.dart' as home;
+import '../orders/cart_page.dart';
+import '../account/personal_info_page.dart';
+import '../account/account_settings_page.dart';
+import '../orders/order_history_page.dart' as orderHistory;
 
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> user; // Store user data
@@ -132,7 +132,7 @@ class ProfilePage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => cart.CartPage(
+                  builder: (context) => CartPage(
                     userId: user['_id'] ?? '', // Pass userId to CartPage
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/resource_provider.dart';
 import 'resource_card.dart';
-import '../mongo_service.dart';
 
 class ResourceListWidget extends StatelessWidget {
   final String searchQuery;
@@ -11,21 +12,15 @@ class ResourceListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      // Fetch available resources
-      future: MongoDatabase.fetchResources(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<ResourceProvider>(
+      builder: (context, resourceProvider, child) {
+        if (resourceProvider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading resources.'));
-        }
 
-        final resources = snapshot.data ?? [];
-        final filteredResources = resources.where((resource) {
+        final filteredResources = resourceProvider.resources.where((resource) {
           final resourceName = resource['name'].toString().toLowerCase();
-          return resource['availability'] == true && // Check for availability
+          return resource['availability'] == true &&
               resourceName.contains(searchQuery.toLowerCase());
         }).toList();
 
