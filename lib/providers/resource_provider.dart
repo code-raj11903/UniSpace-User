@@ -12,21 +12,29 @@ class ResourceProvider extends ChangeNotifier {
     fetchResources();
   }
 
-  Future<void> fetchResources() async {
+  Future<void> fetchResources({bool forceRefresh = false}) async {
+    if (_resources.isNotEmpty && !forceRefresh) {
+      print('Resources already loaded, skipping fetch.');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
+      print('Fetching resources from MongoDB...');
       _resources = await MongoDatabase.fetchResources();
+      print('Resources fetched successfully: ${_resources.length} items.');
     } catch (e) {
-      print("Failed to load resources: $e");
+      print('Failed to load resources: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   void refreshResources() {
-    fetchResources();
+    print('Forcing resource refresh...');
+    fetchResources(forceRefresh: true);
   }
 }

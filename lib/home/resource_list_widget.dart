@@ -6,9 +6,14 @@ import 'resource_card.dart';
 class ResourceListWidget extends StatelessWidget {
   final String searchQuery;
   final String userId;
+  final Map<String, dynamic> user;
 
-  const ResourceListWidget(
-      {super.key, required this.searchQuery, required this.userId});
+  const ResourceListWidget({
+    super.key,
+    required this.searchQuery,
+    required this.userId,
+    required this.user,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +23,23 @@ class ResourceListWidget extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
+        if (resourceProvider.resources.isEmpty) {
+          return const Center(child: Text('Failed to load resources.'));
+        }
+
         final filteredResources = resourceProvider.resources.where((resource) {
-          final resourceName = resource['name'].toString().toLowerCase();
+          final resourceName = resource['name']?.toString().toLowerCase() ?? '';
           return resource['availability'] == true &&
               resourceName.contains(searchQuery.toLowerCase());
         }).toList();
 
         if (filteredResources.isEmpty) {
-          return const Center(child: Text('No resources found.'));
+          return const Center(
+            child: Text(
+              'No resources found. Try broadening your search.',
+              style: TextStyle(fontSize: 16),
+            ),
+          );
         }
 
         return Padding(
@@ -40,7 +54,10 @@ class ResourceListWidget extends StatelessWidget {
             itemCount: filteredResources.length,
             itemBuilder: (context, index) {
               return ResourceCard(
-                  resource: filteredResources[index], userId: userId);
+                resource: filteredResources[index],
+                userId: userId,
+                user: user,
+              );
             },
           ),
         );

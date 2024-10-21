@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loginUser(BuildContext context) async {
     if (!_formKey.currentState!.validate()) {
+      print('Form validation failed');
       return;
     }
 
@@ -29,10 +30,15 @@ class _LoginPageState extends State<LoginPage> {
       String email = _emailController.text.trim();
       String password = _passwordController.text;
 
+      print('Login initiated for email: $email');
+
       final user = await MongoDatabase.authenticateUser(email, password);
       if (user != null) {
+        print('User authenticated successfully, UserId: ${user['id']}');
+
         // Save user login state
         await MongoDatabase.saveUserLogin(user['id']);
+        print('UserId saved successfully in SharedPreferences: ${user['id']}');
 
         // Navigate to Home Page on successful login
         Navigator.pushReplacement(
@@ -40,11 +46,13 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => HomePage(user: user)),
         );
       } else {
+        print('Invalid login attempt: Email or password is incorrect');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid email or password')),
         );
       }
     } catch (e) {
+      print('Login failed with error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: $e')),
       );
@@ -133,6 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             backgroundColor: Colors.white,
+                            minimumSize: const Size(200, 50),
                             foregroundColor: const Color(0xFF7C4DFF),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),

@@ -6,19 +6,32 @@ import '../orders/payment_page.dart';
 class ResourceDetailsPage extends StatelessWidget {
   final Map<String, dynamic> resource;
   final String userId;
+  final Map<String, dynamic> user;
 
   const ResourceDetailsPage({
     super.key,
     required this.resource,
     required this.userId,
+    required this.user,
   });
 
   void addToCart(BuildContext context) async {
-    try {
-      String extractedUserId =
-          userId.replaceAll('ObjectId("', '').replaceAll('")', '');
+    // Log userId before adding to the cart
+    print('Checking userId in addToCart method: $userId');
 
-      if (extractedUserId.isEmpty || extractedUserId.length != 24) {
+    try {
+      // Log userId and resource info before proceeding
+      print('User ID in addToCart: $userId');
+      String pId = resource['_id']
+          .toString()
+          .replaceAll('ObjectId("', '')
+          .replaceAll('")', '');
+
+      print('Resource ID: ${pId}');
+      print('Resource Name: ${resource['name']}');
+
+      if (userId.isEmpty || userId.length != 24) {
+        print('Error: Invalid userId format.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid userId format.')),
         );
@@ -26,22 +39,41 @@ class ResourceDetailsPage extends StatelessWidget {
       }
 
       final itemData = CartItem(
-        productId: resource['_id'].toString(),
-        name: resource['name'],
-        price: (resource['price_per_day'] as num).toDouble(),
-        quantity: 1,
-      );
+          productId: pId,
+          name: resource['name'],
+          price: (resource['price_per_day'] as num).toDouble(),
+          quantity: 1,
+          imageUrl: resource['image_url']);
 
-      String result = await MongoDatabase.addToCart(extractedUserId, itemData);
+      // Log the CartItem details
+      print('Adding item to cart: ${itemData.toMap()}');
+
+      String result = await MongoDatabase.addToCart(userId, itemData);
+      print('Cart addition result: $result');
+
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(result)));
     } catch (e) {
+      print('Failed to add to cart: $e');
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
     }
   }
 
   void buyNow(BuildContext context) {
+    // Log the userId and resource details before navigating
+    print('Checking userId in buyNow method: $userId');
+    print(
+        'Navigating to PaymentPage with userId: $userId and resourceId: ${resource['_id']}');
+
+    if (userId.isEmpty || userId.length != 24) {
+      print('Error: Invalid userId format.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid userId format.')),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -50,6 +82,7 @@ class ResourceDetailsPage extends StatelessWidget {
           resourceName: resource['name'],
           resourcePrice: (resource['price_per_day'] as num).toDouble(),
           userId: userId, // Pass the userId to PaymentPage
+          user: user,
         ),
       ),
     );
@@ -57,6 +90,10 @@ class ResourceDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Log the userId when building the page
+    print(
+        'Building ResourceDetailsPage for resource ID: ${resource['_id']} with userId: $userId');
+
     return Scaffold(
       appBar: AppBar(
         title: Text(resource['name'] ?? 'Resource Details'),
@@ -106,22 +143,6 @@ class ResourceDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _buildInfoRow(
-              icon: Icons.location_on,
-              label: 'Location',
-              value: resource['location'] ?? 'Not specified',
-            ),
-            _buildInfoRow(
-              icon: Icons.check_circle,
-              label: 'Availability',
-              value: resource['availability'] ? 'Available' : 'Booked',
-            ),
-            _buildInfoRow(
-              icon: Icons.date_range,
-              label: 'Available from',
-              value: resource['available_from'] ?? 'Not specified',
-            ),
-            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -159,36 +180,6 @@ class ResourceDetailsPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-      {required IconData icon, required String label, required String value}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.deepPurple),
-          const SizedBox(width: 10),
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

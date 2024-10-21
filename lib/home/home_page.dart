@@ -9,27 +9,60 @@ import 'resource_list_widget.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, dynamic> user;
+  final bool refresh; // Add a refresh parameter
 
-  const HomePage({super.key, required this.user});
+  const HomePage({super.key, required this.user, this.refresh = false});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  String? userId;
   String searchQuery = '';
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    Provider.of<ResourceProvider>(context, listen: false).fetchResources();
     _persistLogin();
+    final dynamic objectId = widget.user['id'];
+    userId =
+        objectId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
+    print('HomePage initialized with user: ${widget.user}');
+
+    if (widget.refresh) {
+      _fetchResources(); // Refresh the homepage if the refresh flag is true
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetchResources();
+  }
+
+  Future<void> _fetchResources() async {
+    try {
+      print('Fetching resources...');
+      await Provider.of<ResourceProvider>(context, listen: false)
+          .fetchResources(
+              forceRefresh:
+                  widget.refresh); // Fetch resources based on the refresh flag
+      print('Resources fetched successfully.');
+    } catch (e) {
+      print('Error fetching resources: $e');
+    }
   }
 
   Future<void> _persistLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      print('Login state persisted in SharedPreferences');
+    } catch (e) {
+      print('Error persisting login state: $e');
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -46,23 +79,32 @@ class _HomePageState extends State<HomePage> {
   void onSearchChanged(String query) {
     setState(() {
       searchQuery = query;
+      print('Search query updated: $query');
     });
   }
 
   void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
+
     setState(() {
       _selectedIndex = index;
     });
+    final dynamic objectId = widget.user['id'];
+    final userId =
+        objectId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
 
-    final userId = widget.user['_id'] as String? ?? '';
+    if (userId.isEmpty) {
+      print('Error: userId is null or empty');
+      return;
+    }
 
+    print('Navigating with userId: $userId');
     switch (index) {
       case 1:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CartPage(userId: userId),
+            builder: (context) => CartPage(userId: userId, user: widget.user),
           ),
         );
         break;
@@ -70,7 +112,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => OrderHistoryPage(userId: userId),
+            builder: (context) => OrderHistoryPage(userId: widget.user),
           ),
         );
         break;
@@ -82,6 +124,8 @@ class _HomePageState extends State<HomePage> {
           ),
         );
         break;
+      default:
+        print('Unknown navigation index: $index');
     }
   }
 
@@ -105,12 +149,23 @@ class _HomePageState extends State<HomePage> {
           ),
           backgroundColor: const Color(0xFF7C4DFF),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ResourceListWidget(
-            searchQuery: searchQuery,
-            userId: widget.user['_id'] as String? ?? '',
-          ),
+        body: Consumer<ResourceProvider>(
+          builder: (context, resourceProvider, _) {
+            if (resourceProvider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (resourceProvider.resources.isEmpty) {
+              return const Center(child: Text('No resources available.'));
+            }
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ResourceListWidget(
+                searchQuery: searchQuery,
+                userId: userId ?? '',
+                user: widget.user, // Pass the extracted userId here
+              ),
+            );
+          },
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,

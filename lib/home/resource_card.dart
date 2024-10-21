@@ -3,9 +3,15 @@ import 'resource_details_page.dart';
 
 class ResourceCard extends StatelessWidget {
   final Map<String, dynamic> resource;
+  final Map<String, dynamic> user;
   final String userId;
 
-  const ResourceCard({super.key, required this.resource, required this.userId});
+  const ResourceCard({
+    super.key,
+    required this.resource,
+    required this.user,
+    required this.userId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +23,7 @@ class ResourceCard extends StatelessWidget {
             builder: (context) => ResourceDetailsPage(
               resource: resource,
               userId: userId,
+              user: user,
             ),
           ),
         );
@@ -62,9 +69,9 @@ class ResourceCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    resource['price'] != null
-                        ? 'Price: ₹${resource['price'].toStringAsFixed(2)}'
-                        : 'Price: Not available', // Fallback if price is null
+                    resource['price_per_day'] != null
+                        ? 'Price: ₹${(resource['price_per_day'] as num).toDouble().toStringAsFixed(2)}'
+                        : 'Price: Not available',
                     style: const TextStyle(fontSize: 16, color: Colors.green),
                   ),
                   const SizedBox(height: 5),

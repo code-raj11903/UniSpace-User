@@ -76,6 +76,7 @@ class AccountSettingsPage extends StatelessWidget {
     );
   }
 
+  // Dialog for confirming logout
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -98,10 +99,12 @@ class AccountSettingsPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                // Log out and clear shared preferences
+                // Clear logged-in user data
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('loggedInUserId'); // Clear session
-                Navigator.pop(context);
+                await prefs.remove('loggedInUserId'); // Clear the session
+
+                // Navigate to login screen after logout
+                Navigator.pop(context); // Close the dialog
                 Navigator.pushReplacementNamed(context, '/login');
               },
               child: const Text(
@@ -115,6 +118,7 @@ class AccountSettingsPage extends StatelessWidget {
     );
   }
 
+  // Dialog for confirming account deletion
   void _showDeleteAccountDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -138,11 +142,12 @@ class AccountSettingsPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                // Delete account logic here (pseudo code)
-                // await MongoDatabase.deleteAccount(userId);
+                // Add your account deletion logic here
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('loggedInUserId'); // Clear session
-                Navigator.pop(context);
+                await prefs.remove('loggedInUserId'); // Clear the session
+
+                // Navigate to registration screen after account deletion
+                Navigator.pop(context); // Close the dialog
                 Navigator.pushReplacementNamed(context, '/register');
               },
               child: const Text(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/orders/order_history_page.dart';
 import '../home/home_page.dart' as home;
 import '../orders/cart_page.dart';
 import '../account/personal_info_page.dart';
 import '../account/account_settings_page.dart';
-import '../orders/order_history_page.dart' as orderHistory;
 
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> user; // Store user data
@@ -71,10 +71,7 @@ class ProfilePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => orderHistory.OrderHistoryPage(
-                      userId:
-                          user['_id'] ?? '', // Assuming '_id' is the user ID
-                    ),
+                    builder: (context) => OrderHistoryPage(userId: user),
                   ),
                 );
               },
@@ -88,8 +85,8 @@ class ProfilePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        PersonalInfoPage(user: user), // Pass user data
+                    builder: (context) => PersonalInfoPage(
+                        userId: user['id'], user: user), // Pass user data
                   ),
                 );
               },
@@ -134,6 +131,7 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => CartPage(
                     userId: user['_id'] ?? '', // Pass userId to CartPage
+                    user: user,
                   ),
                 ),
               );
@@ -143,9 +141,7 @@ class ProfilePage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => orderHistory.OrderHistoryPage(
-                    userId: user['_id'] ?? '', // Assuming '_id' is the user ID
-                  ),
+                  builder: (context) => OrderHistoryPage(userId: user),
                 ),
               );
               break;

@@ -8,6 +8,7 @@ class ProductDetailsPage extends StatelessWidget {
   final String name;
   final double price;
   final String userId;
+  final Map<String, dynamic> user;
 
   const ProductDetailsPage({
     super.key,
@@ -15,12 +16,23 @@ class ProductDetailsPage extends StatelessWidget {
     required this.name,
     required this.price,
     required this.userId,
+    required this.user,
   });
 
   Future<void> addToCart(BuildContext context) async {
     try {
-      String actualUserId =
-          userId.replaceAll('ObjectId("', '').replaceAll('")', '');
+      // Log userId and product details
+      print('User ID in addToCart: $userId');
+      print('Product ID: $productId');
+      print('Product Name: $name');
+
+      if (userId.isEmpty || userId.length != 24) {
+        print('Error: Invalid userId format.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid userId format.')),
+        );
+        return;
+      }
 
       final cartItem = CartItem(
         productId: productId,
@@ -29,16 +41,34 @@ class ProductDetailsPage extends StatelessWidget {
         quantity: 1,
       );
 
-      String result = await MongoDatabase.addToCart(actualUserId, cartItem);
+      // Log CartItem details before adding to cart
+      print('Adding item to cart: ${cartItem.toMap()}');
+
+      String result = await MongoDatabase.addToCart(userId, cartItem);
+      print('Cart addition result: $result');
+
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(result)));
     } catch (e) {
+      print('Failed to add to cart: $e');
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
     }
   }
 
   void buyNow(BuildContext context) {
+    // Log navigation details
+    print(
+        'Navigating to PaymentPage with userId: $userId and productId: $productId');
+
+    if (userId.isEmpty || userId.length != 24) {
+      print('Error: Invalid userId format.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid userId format.')),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -47,6 +77,7 @@ class ProductDetailsPage extends StatelessWidget {
           resourceName: name,
           resourcePrice: price,
           userId: userId, // Pass the userId to PaymentPage
+          user: user,
         ),
       ),
     );
@@ -61,21 +92,37 @@ class ProductDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: const TextStyle(fontSize: 24)),
+            Text(name,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
             Text('₹${price.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 20)),
+                style: const TextStyle(fontSize: 20, color: Colors.green)),
+            const SizedBox(height: 20),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                    onPressed: () => addToCart(context),
-                    child: const Text('Add to Cart')),
+                  onPressed: () => addToCart(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text('Add to Cart'),
+                ),
                 ElevatedButton(
-                    onPressed: () => buyNow(context),
-                    child: const Text('Buy Now')),
+                  onPressed: () => buyNow(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text('Buy Now'),
+                ),
               ],
-            )
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

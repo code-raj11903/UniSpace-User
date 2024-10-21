@@ -1,25 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_application_1/account/profile_page.dart';
+import 'package:flutter_application_1/home/home_page.dart';
+import 'package:flutter_application_1/orders/order_history_page.dart';
 import '../providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 import '../orders/payment_page.dart'; // Import PaymentPage
 
 class CartPage extends StatefulWidget {
   final String userId;
+  final Map<String, dynamic> user;
 
-  const CartPage({super.key, required this.userId});
+  const CartPage({super.key, required this.userId, required this.user});
 
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
+  int _selectedIndex = 1; // Start at cart page index
+
   @override
   void initState() {
     super.initState();
-    // Log when loading cart items
+    // Load cart items
     print("Loading cart items for user ID: ${widget.userId}");
     Provider.of<CartProvider>(context, listen: false)
         .loadCartItems(widget.userId);
+  }
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex == index) return;
+
+    setState(() {
+      _selectedIndex = index;
+    });
+    final dynamic objectId = widget.user['id'];
+    final userId =
+        objectId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
+
+    if (userId.isEmpty) {
+      print('Error: userId is null or empty');
+      return;
+    }
+
+    print('Navigating with userId: $userId');
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(user: widget.user),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderHistoryPage(userId: widget.user),
+          ),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(user: widget.user),
+          ),
+        );
+        break;
+      default:
+        print('Unknown navigation index: $index');
+    }
   }
 
   @override
@@ -29,12 +81,7 @@ class _CartPageState extends State<CartPage> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Your Cart'),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context); // Return to previous screen
-              },
-            ),
+            centerTitle: true, // Center the title in the app bar
           ),
           body: cartProvider.cartItems.isEmpty
               ? const Center(
@@ -57,7 +104,6 @@ class _CartPageState extends State<CartPage> {
                             ),
                             child: Row(
                               children: [
-                                // Product Image
                                 ClipRRect(
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(15),
@@ -79,7 +125,6 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                // Product Details
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -105,7 +150,6 @@ class _CartPageState extends State<CartPage> {
                                     ],
                                   ),
                                 ),
-                                // Remove Button
                                 IconButton(
                                   icon: const Icon(Icons.remove_circle,
                                       color: Colors.red),
@@ -125,7 +169,6 @@ class _CartPageState extends State<CartPage> {
                         },
                       ),
                     ),
-                    // Total Price Summary
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 16.0, horizontal: 24.0),
@@ -147,31 +190,39 @@ class _CartPageState extends State<CartPage> {
                     ),
                   ],
                 ),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: cartProvider.cartItems.isNotEmpty
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaymentPage(
-                            userId: widget.userId,
-                            cartItems: cartProvider.cartItems,
-                            totalAmount: cartProvider.totalPrice,
-                          ),
-                        ),
-                      );
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              child: const Text('Proceed to Payment'),
-            ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart), label: 'Cart'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.history), label: 'Order History'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: 'Profile'),
+            ],
+            selectedItemColor: const Color(0xFF7C4DFF),
+            unselectedItemColor: Colors.grey,
           ),
+          floatingActionButton: cartProvider.cartItems.isNotEmpty
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentPage(
+                          userId: widget.userId,
+                          cartItems: cartProvider.cartItems,
+                          totalAmount: cartProvider.totalPrice,
+                          user: widget.user,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.payment),
+                )
+              : null,
         );
       },
     );

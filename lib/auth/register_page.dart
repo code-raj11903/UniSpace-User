@@ -13,14 +13,19 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _mobileController =
-      TextEditingController(); // New Mobile Controller
-  final TextEditingController _addressController =
-      TextEditingController(); // New Address Controller
+  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _pincodeController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-      TextEditingController(); // Confirm Password Controller
+      TextEditingController();
+
   bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   Future<void> _registerUser(BuildContext context) async {
     if (!_formKey.currentState!.validate()) {
@@ -34,15 +39,22 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       String name = _nameController.text.trim();
       String email = _emailController.text.trim();
-      String mobile = _mobileController.text.trim(); // Get mobile number
-      String address = _addressController.text.trim(); // Get address
+      String mobile = _mobileController.text.trim();
+
+      // Concatenate address components into a single string
+      String address = '${_streetController.text.trim()}, '
+          '${_areaController.text.trim()}, '
+          '${_cityController.text.trim()}, '
+          '${_stateController.text.trim()}, '
+          '${_pincodeController.text.trim()}';
+
       String password = _passwordController.text;
 
       Map<String, dynamic> user = {
         'name': name,
         'email': email,
-        'mobile': mobile, // Add mobile to the user map
-        'address': address, // Add address to the user map
+        'mobile': mobile,
+        'address': address,
         'password': password,
         'createdAt': DateTime.now().toIso8601String(),
       };
@@ -53,7 +65,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       // Navigate to LoginPage on successful registration
-      if (result == 'Document inserted successfully!') {
+      if (result == 'Account Created successfully!') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -98,128 +110,84 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
+
+                  // Full Name
+                  _buildTextField('Full Name', _nameController),
+
+                  // Email and Mobile in the same row
+                  Row(
+                    children: [
+                      Expanded(
+                          child: _buildTextField('Email', _emailController,
+                              keyboardType: TextInputType.emailAddress)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                          child: _buildTextField(
+                              'Mobile Number', _mobileController,
+                              keyboardType: TextInputType.phone)),
+                    ],
                   ),
+
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                          .hasMatch(value)) {
-                        return 'Please enter a valid email address';
-                      }
-                      return null;
-                    },
+
+                  // Street/House No. and Area in the same row
+                  Row(
+                    children: [
+                      Expanded(
+                          child: _buildTextField(
+                              'Street/House No.', _streetController)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildTextField('Area', _areaController)),
+                    ],
                   ),
+
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _mobileController, // New Mobile Field
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'Mobile Number',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your mobile number';
-                      } else if (value.length != 10) {
-                        // Assuming 10-digit mobile numbers
-                        return 'Mobile number must be 10 digits';
-                      }
-                      return null;
-                    },
+
+                  // City and State in the same row
+                  Row(
+                    children: [
+                      Expanded(child: _buildTextField('City', _cityController)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                          child: _buildTextField('State', _stateController)),
+                    ],
                   ),
+
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _addressController, // New Address Field
-                    decoration: InputDecoration(
-                      labelText: 'Address',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your address';
-                      }
-                      return null;
-                    },
-                  ),
+
+                  // Pincode
+                  _buildTextField('Pincode', _pincodeController,
+                      keyboardType: TextInputType.number),
+
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+
+                  // Password and Confirm Password in the same row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildPasswordField(
+                            'Password', _passwordController, _showPassword, () {
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        }),
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      } else if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildPasswordField(
+                            'Confirm Password',
+                            _confirmPasswordController,
+                            _showConfirmPassword, () {
+                          setState(() {
+                            _showConfirmPassword = !_showConfirmPassword;
+                          });
+                        }),
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      } else if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
+                    ],
                   ),
+
                   const SizedBox(height: 30),
+
                   _isLoading
                       ? const CircularProgressIndicator()
                       : ElevatedButton(
@@ -227,6 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             backgroundColor: Colors.white,
+                            minimumSize: const Size(200, 50),
                             foregroundColor: const Color(0xFF7C4DFF),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -237,7 +206,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: TextStyle(fontSize: 18),
                           ),
                         ),
+
                   const SizedBox(height: 20),
+
                   TextButton(
                     onPressed: () {
                       Navigator.pushReplacement(
@@ -256,6 +227,65 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.9),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(String label, TextEditingController controller,
+      bool showPassword, VoidCallback toggleVisibility) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.text,
+        obscureText: !showPassword,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.9),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              showPassword ? Icons.visibility : Icons.visibility_off,
+            ),
+            onPressed: toggleVisibility,
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your $label';
+          }
+          return null;
+        },
       ),
     );
   }

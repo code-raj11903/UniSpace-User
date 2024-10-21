@@ -4,6 +4,8 @@ import 'providers/resource_provider.dart';
 import 'providers/cart_provider.dart';
 import 'mongo_service.dart';
 import 'auth/login_page.dart'; // Ensure this import is correct
+import 'home/home_page.dart'; // Import home page
+import 'auth/register_page.dart'; // Import register page
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,13 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const LoginPage(),
+        initialRoute: '/login', // Set initial route
+        routes: {
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegisterPage(),
+          '/home': (context) =>
+              const HomePage(user: {}), // Ensure user is passed when navigating
+        },
       ),
     );
   }

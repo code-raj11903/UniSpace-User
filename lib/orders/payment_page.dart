@@ -4,21 +4,23 @@ import '../cart/cart_item.dart';
 import '../orders/order_summary_page.dart';
 
 class PaymentPage extends StatefulWidget {
-  final String? resourceId; // Nullable for cart payments
+  final String? resourceId; // Nullable for single resource payments
   final String? resourceName;
   final double? resourcePrice;
   final String? userId;
+  final Map<String, dynamic> user;
   final List<CartItem>? cartItems; // List of cart items for cart payment
-  final double? totalAmount; // Total amount for cart payment
+  final double? totalAmount; // Total amount for cart payments
 
   const PaymentPage({
     super.key,
-    this.resourceId, // These will be used for single resource payments
+    this.resourceId, // Used for single resource payments
     this.resourceName,
     this.resourcePrice,
-    this.userId, // This will be used for cart payments
-    this.cartItems, // This will be used if processing cart items
-    this.totalAmount, // Total amount for cart payment
+    this.userId, // Used for cart payments
+    required this.user,
+    this.cartItems, // Used for cart payments
+    this.totalAmount, // Total amount for cart payments
   });
 
   @override
@@ -29,8 +31,18 @@ class _PaymentPageState extends State<PaymentPage> {
   bool _isProcessing = false;
   String? _selectedPaymentMethod;
 
+  @override
+  void initState() {
+    super.initState();
+    print('User ID in PaymentPage: ${widget.userId}');
+    print('Resource ID in PaymentPage: ${widget.resourceId}');
+    print('Resource Price: ${widget.resourcePrice}');
+  }
+
+  // Centralized method to handle payment and booking logic
   Future<void> processPayment(BuildContext context) async {
     if (_selectedPaymentMethod == null) {
+      print('Error: Payment method not selected.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a payment method.')),
       );
@@ -45,79 +57,83 @@ class _PaymentPageState extends State<PaymentPage> {
       await Future.delayed(
           const Duration(seconds: 2)); // Simulate payment processing delay
 
-      // For single resource payments (Buy Now)
       if (widget.resourceId != null &&
           widget.resourceName != null &&
           widget.resourcePrice != null) {
-        String resourceId = widget.resourceId!
-            .replaceAll('ObjectId("', '')
-            .replaceAll('")', '');
-        print('Attempting to book resource with ID: $resourceId');
-
-        // Book the resource
-        String bookingResult = await MongoDatabase.bookResource(resourceId);
-        if (bookingResult == 'Resource booked successfully!') {
-          await MongoDatabase.saveBooking(
-              widget.userId!, [resourceId], widget.resourcePrice!);
-
-          // Navigate to order summary page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderSummaryPage(
-                cartItems: [
-                  CartItem(
-                      productId: resourceId,
-                      name: widget.resourceName!,
-                      price: widget.resourcePrice!,
-                      quantity: 1)
-                ],
-                totalAmount: widget.resourcePrice!,
-                paymentMethod: _selectedPaymentMethod!,
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Booking failed: $bookingResult')));
-        }
-      }
-      // For cart payments
-      else if (widget.cartItems != null &&
-          widget.totalAmount != null &&
-          widget.userId != null) {
-        List<String> resourceIds = [];
-        for (var cartItem in widget.cartItems!) {
-          String result = await MongoDatabase.bookResource(cartItem.productId);
-          resourceIds.add(cartItem.productId);
-        }
-
-        await MongoDatabase.saveBooking(
-            widget.userId!, resourceIds, widget.totalAmount!);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment Successful for Cart Items')),
-        );
-
-        // Navigate to order summary page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OrderSummaryPage(
-              cartItems: widget.cartItems!,
-              totalAmount: widget.totalAmount!,
-              paymentMethod: _selectedPaymentMethod!,
-            ),
-          ),
-        );
+        print('Processing payment for single resource');
+        await _processSingleResourcePayment(context);
+      } else {
+        print('Error: Resource details are incomplete.');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Payment failed: $e')));
+      print('Payment failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed: $e')),
+      );
     } finally {
       setState(() {
         _isProcessing = false;
       });
+    }
+  }
+
+  // Function to process payment for single resource (Buy Now)
+  Future<void> _processSingleResourcePayment(BuildContext context) async {
+    try {
+      print('User ID in PaymentPage: ${widget.userId}');
+
+      if (widget.userId == null || widget.userId!.isEmpty) {
+        print('Error: User ID is null or empty.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error: User ID is invalid. Please log in again.')),
+        );
+        return;
+      }
+
+      String resourceId =
+          widget.resourceId!.replaceAll('ObjectId("', '').replaceAll('")', '');
+      print('Attempting to book resource ID: $resourceId');
+
+      String bookingResult = await MongoDatabase.bookResource(resourceId);
+
+      if (bookingResult == 'Resource booked successfully!') {
+        print('Resource booking successful for resource ID: $resourceId');
+
+        // Log before saving the order
+        print('Attempting to save order for userId: ${widget.userId}');
+        String saveOrderResult = await MongoDatabase.saveOrder(
+            widget.userId!, [resourceId], widget.resourcePrice!);
+        print('Save Order Result: $saveOrderResult');
+
+        // Navigate to Order Summary Page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderSummaryPage(
+              cartItems: [
+                CartItem(
+                  productId: resourceId,
+                  name: widget.resourceName!,
+                  price: widget.resourcePrice!,
+                  quantity: 1,
+                ),
+              ],
+              totalAmount: widget.resourcePrice!,
+              user: widget.user,
+              paymentMethod: _selectedPaymentMethod!,
+            ),
+          ),
+        );
+      } else {
+        print('Resource booking failed: $bookingResult');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Booking failed: $bookingResult')),
+        );
+      }
+    } catch (e) {
+      print('Error during payment process: $e');
+      throw Exception('Failed to process payment for single resource: $e');
     }
   }
 
@@ -137,7 +153,6 @@ class _PaymentPageState extends State<PaymentPage> {
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            // Display the resource information if buying a single resource
             if (widget.resourceId != null &&
                 widget.resourceName != null &&
                 widget.resourcePrice != null) ...[
@@ -151,16 +166,16 @@ class _PaymentPageState extends State<PaymentPage> {
                 'Price: ₹${widget.resourcePrice!.toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 20, color: Colors.green),
               ),
-            ],
-            // Display the cart total if processing multiple items from cart
-            if (widget.cartItems != null && widget.totalAmount != null) ...[
+            ] else if (widget.totalAmount != null &&
+                widget.cartItems != null &&
+                widget.cartItems!.isNotEmpty) ...[
               const Text(
-                'Cart Items:',
+                'Total Amount',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),
               Text(
-                'Total Amount: ₹${widget.totalAmount!.toStringAsFixed(2)}',
+                '₹${widget.totalAmount!.toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 20, color: Colors.green),
               ),
             ],
@@ -177,7 +192,6 @@ class _PaymentPageState extends State<PaymentPage> {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 10),
-            // Payment Options
             RadioListTile<String>(
               value: 'Credit/Debit Card',
               groupValue: _selectedPaymentMethod,
@@ -199,18 +213,6 @@ class _PaymentPageState extends State<PaymentPage> {
               },
               title: const Text('PayPal'),
               secondary: const Icon(Icons.paypal, color: Colors.blue),
-            ),
-            RadioListTile<String>(
-              value: 'UPI',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value;
-                });
-              },
-              title: const Text('UPI'),
-              secondary: const Icon(Icons.account_balance_wallet,
-                  color: Colors.deepPurple),
             ),
             const SizedBox(height: 20),
             const Divider(thickness: 2),
