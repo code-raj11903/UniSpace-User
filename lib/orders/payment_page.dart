@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../mongo_service.dart';
 import '../cart/cart_item.dart';
 import '../orders/order_summary_page.dart';
 
 class PaymentPage extends StatefulWidget {
-  final String? resourceId; // Nullable for single resource payments
+  final Map<String, dynamic>? resource;
+  final String? resourceId;
   final String? resourceName;
   final double? resourcePrice;
   final String? userId;
   final Map<String, dynamic> user;
-  final List<CartItem>? cartItems; // List of cart items for cart payment
-  final double? totalAmount; // Total amount for cart payments
+  final List<CartItem>? cartItems;
+  final double? totalAmount;
 
   const PaymentPage({
     super.key,
-    this.resourceId, // Used for single resource payments
+    this.resource,
+    this.resourceId,
     this.resourceName,
     this.resourcePrice,
-    this.userId, // Used for cart payments
+    this.userId,
     required this.user,
-    this.cartItems, // Used for cart payments
-    this.totalAmount, // Total amount for cart payments
+    this.cartItems,
+    this.totalAmount,
   });
 
   @override
@@ -30,21 +33,47 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   bool _isProcessing = false;
   String? _selectedPaymentMethod;
-
+  DateTime? _startDate;
+  DateTime? _endDate;
   @override
   void initState() {
     super.initState();
-    print('User ID in PaymentPage: ${widget.userId}');
-    print('Resource ID in PaymentPage: ${widget.resourceId}');
-    print('Resource Price: ${widget.resourcePrice}');
+    print('Resource details on PaymentPage load: ${widget.resource}');
   }
 
-  // Centralized method to handle payment and booking logic
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = pickedDate;
+          if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+            _endDate = null; // Reset end date if it's before start date
+          }
+        } else {
+          _endDate = pickedDate;
+        }
+      });
+    }
+  }
+
   Future<void> processPayment(BuildContext context) async {
     if (_selectedPaymentMethod == null) {
-      print('Error: Payment method not selected.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a payment method.')),
+      );
+      return;
+    }
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please select both start and end dates.')),
       );
       return;
     }
@@ -54,13 +83,11 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
-      await Future.delayed(
-          const Duration(seconds: 2)); // Simulate payment processing delay
+      await Future.delayed(const Duration(seconds: 2));
 
       if (widget.resourceId != null &&
           widget.resourceName != null &&
           widget.resourcePrice != null) {
-        print('Processing payment for single resource');
         await _processSingleResourcePayment(context);
       } else {
         print('Error: Resource details are incomplete.');
@@ -77,15 +104,11 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
-  // Function to process payment for single resource (Buy Now)
   Future<void> _processSingleResourcePayment(BuildContext context) async {
     try {
-      print('User ID in PaymentPage: ${widget.userId}');
-
       if (widget.userId == null || widget.userId!.isEmpty) {
-        print('Error: User ID is null or empty.');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
               content: Text('Error: User ID is invalid. Please log in again.')),
         );
         return;
@@ -93,40 +116,32 @@ class _PaymentPageState extends State<PaymentPage> {
 
       String resourceId =
           widget.resourceId!.replaceAll('ObjectId("', '').replaceAll('")', '');
-      print('Attempting to book resource ID: $resourceId');
-
-      String bookingResult = await MongoDatabase.bookResource(resourceId);
+      String bookingResult =
+          await MongoDatabase.bookResource(resourceId, _startDate!, _endDate!);
 
       if (bookingResult == 'Resource booked successfully!') {
-        print('Resource booking successful for resource ID: $resourceId');
-
-        // Log before saving the order
-        print('Attempting to save order for userId: ${widget.userId}');
         String saveOrderResult = await MongoDatabase.saveOrder(
-            widget.userId!, [resourceId], widget.resourcePrice!);
-        print('Save Order Result: $saveOrderResult');
+          widget.userId!,
+          [resourceId],
+          widget.resourcePrice!,
+          _startDate!,
+          _endDate!,
+        );
 
-        // Navigate to Order Summary Page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => OrderSummaryPage(
-              cartItems: [
-                CartItem(
-                  productId: resourceId,
-                  name: widget.resourceName!,
-                  price: widget.resourcePrice!,
-                  quantity: 1,
-                ),
-              ],
               totalAmount: widget.resourcePrice!,
-              user: widget.user,
               paymentMethod: _selectedPaymentMethod!,
+              user: widget.user,
+              startDate: _startDate!, // Add start date
+              endDate: _endDate!, // Add end date
+              resource: widget.resource,
             ),
           ),
         );
       } else {
-        print('Resource booking failed: $bookingResult');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Booking failed: $bookingResult')),
         );
@@ -139,94 +154,160 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final dateFormat = DateFormat('yyyy-MM-dd');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Payment Details'),
+        centerTitle: true,
+        backgroundColor: Colors.indigo,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Payment Summary',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            if (widget.resourceId != null &&
-                widget.resourceName != null &&
-                widget.resourcePrice != null) ...[
-              Text(
-                'Resource: ${widget.resourceName}',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Price: ₹${widget.resourcePrice!.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 20, color: Colors.green),
-              ),
-            ] else if (widget.totalAmount != null &&
-                widget.cartItems != null &&
-                widget.cartItems!.isNotEmpty) ...[
-              const Text(
-                'Total Amount',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '₹${widget.totalAmount!.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 20, color: Colors.green),
-              ),
-            ],
-            const SizedBox(height: 20),
-            const Divider(thickness: 2),
-            const SizedBox(height: 20),
-            const Text(
-              'Payment Method',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Select your preferred payment method:',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            RadioListTile<String>(
-              value: 'Credit/Debit Card',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value;
-                });
-              },
-              title: const Text('Credit/Debit Card'),
-              secondary: const Icon(Icons.credit_card, color: Colors.blue),
-            ),
-            RadioListTile<String>(
-              value: 'PayPal',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value;
-                });
-              },
-              title: const Text('PayPal'),
-              secondary: const Icon(Icons.paypal, color: Colors.blue),
-            ),
-            const SizedBox(height: 20),
-            const Divider(thickness: 2),
-            const Spacer(),
-            _isProcessing
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: () => processPayment(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      textStyle: const TextStyle(fontSize: 18),
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Details',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo,
+                      ),
                     ),
-                    child: const Text('Proceed to Payment'),
+                    const Divider(),
+                    if (widget.resourceId != null &&
+                        widget.resourceName != null &&
+                        widget.resourcePrice != null) ...[
+                      Image.network(
+                        widget.resource?['image_url'] ??
+                            'https://via.placeholder.com/150',
+                        height: 120,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Resource: ${widget.resourceName}',
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Description: ${widget.resource?['description'] ?? 'No description available.'}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Price Per Day: ₹${widget.resourcePrice!.toStringAsFixed(2)}',
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.green),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Start Date: ${_startDate != null ? dateFormat.format(_startDate!) : 'Select'}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today,
+                              color: Colors.indigo),
+                          onPressed: () => _selectDate(context, true),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'End Date: ${_endDate != null ? dateFormat.format(_endDate!) : 'Select'}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today,
+                              color: Colors.indigo),
+                          onPressed: () => _selectDate(context, false),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo,
+                      ),
+                    ),
+                    const Divider(),
+                    RadioListTile<String>(
+                      value: 'Credit/Debit Card',
+                      groupValue: _selectedPaymentMethod,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPaymentMethod = value;
+                        });
+                      },
+                      title: const Text('Credit/Debit Card'),
+                      secondary:
+                          const Icon(Icons.credit_card, color: Colors.indigo),
+                    ),
+                    RadioListTile<String>(
+                      value: 'PayPal',
+                      groupValue: _selectedPaymentMethod,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPaymentMethod = value;
+                        });
+                      },
+                      title: const Text('PayPal'),
+                      secondary:
+                          const Icon(Icons.payment, color: Colors.indigo),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isProcessing ? null : () => processPayment(context),
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  backgroundColor: const Color.fromARGB(255, 223, 223, 225),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                child: _isProcessing
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text('Proceed to Pay'),
+              ),
+            ),
           ],
         ),
       ),

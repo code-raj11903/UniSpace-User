@@ -78,6 +78,7 @@ class ResourceDetailsPage extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PaymentPage(
+          resource: resource, // Pass the whole resource map
           resourceId: resource['_id'].toString(),
           resourceName: resource['name'],
           resourcePrice: (resource['price_per_day'] as num).toDouble(),

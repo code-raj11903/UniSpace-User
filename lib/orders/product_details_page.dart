@@ -9,6 +9,7 @@ class ProductDetailsPage extends StatelessWidget {
   final double price;
   final String userId;
   final Map<String, dynamic> user;
+  final Map<String, dynamic> resource;
 
   const ProductDetailsPage({
     super.key,
@@ -17,6 +18,7 @@ class ProductDetailsPage extends StatelessWidget {
     required this.price,
     required this.userId,
     required this.user,
+    required this.resource,
   });
 
   Future<void> addToCart(BuildContext context) async {
@@ -73,6 +75,7 @@ class ProductDetailsPage extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PaymentPage(
+          resource: resource,
           resourceId: productId,
           resourceName: name,
           resourcePrice: price,

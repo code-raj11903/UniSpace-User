@@ -32,8 +32,9 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegisterPage(),
-          '/home': (context) =>
-              const HomePage(user: {}), // Ensure user is passed when navigating
+          '/home': (context) => const HomePage(
+              user: {},
+              refresh: false), // Ensure user is passed when navigating
         },
       ),
     );

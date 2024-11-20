@@ -82,6 +82,20 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  ClipOval(
+                    child: Container(
+                      color: Colors.white, // Add a white background
+                      padding: const EdgeInsets.all(
+                          8.0), // Add padding around the image
+                      child: Image.asset(
+                        'assets/images/logo.jpg', // Path to your logo
+                        width: 120, // Adjust size
+                        height: 120,
+                        fit: BoxFit.cover, // Ensure it covers the circular area
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   const Text(
                     'Login',
                     style: TextStyle(

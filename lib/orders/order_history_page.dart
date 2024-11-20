@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 import '../mongo_service.dart'; // Assume this handles the MongoDB connection
 import '../orders/cart_page.dart';
 import '../account/profile_page.dart';
@@ -26,6 +28,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     user =
         objectId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
     _fetchOrderHistory();
+    if (user!.isNotEmpty) {
+      Provider.of<CartProvider>(context, listen: false).loadCartItems(user!);
+    }
   }
 
   void _onItemTapped(int index) {
@@ -131,7 +136,20 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     var order = _orders[index];
+                    var id = order['_id']
+                        .toString()
+                        .replaceAll('ObjectId("', '')
+                        .replaceAll('")', '');
                     var resourceInfo = order['resource_info'] ?? {};
+
+                    // Extract and format start and end dates
+                    var startDate = order['start_date'] is DateTime
+                        ? DateFormat('dd MMM yyyy').format(order['start_date'])
+                        : 'Unknown';
+                    var endDate = order['end_date'] is DateTime
+                        ? DateFormat('dd MMM yyyy').format(order['end_date'])
+                        : 'Unknown';
+
                     return Container(
                       margin: const EdgeInsets.symmetric(
                         vertical: 10.0,
@@ -159,7 +177,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Order ID: ${order['_id']}',
+                                    'Order ID: ${id}',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -199,6 +217,28 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Display Start Date and End Date
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Start Date: $startDate',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  'End Date: $endDate',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
                                   ),
                                 ),
                               ],
@@ -247,9 +287,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
-                                          resourceInfo['location'] ?? 'Unknown',
+                                          resourceInfo['location'] ??
+                                              'Unknown Location',
                                           style: const TextStyle(
-                                              fontSize: 14, color: Colors.grey),
+                                            fontSize: 14,
+                                            color: Colors.grey,
+                                          ),
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
@@ -266,41 +309,6 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                 ],
                               ),
                             ],
-                            const SizedBox(height: 16),
-
-                            // Action Buttons
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Implement order details or repeat order action
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text('View Details'),
-                                ),
-                                const SizedBox(width: 10),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Implement reorder functionality
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text('Repeat Order'),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -310,13 +318,43 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Cart'),
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.history), label: 'Order History'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+            icon: Stack(
+              children: [
+                Icon(Icons.shopping_cart),
+                if (Provider.of<CartProvider>(context).cartItems.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.red,
+                      child: Text(
+                        '${Provider.of<CartProvider>(context).cartItems.length}', // Display number of items in cart
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Order History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
         selectedItemColor: const Color(0xFF7C4DFF),
         unselectedItemColor: Colors.grey,

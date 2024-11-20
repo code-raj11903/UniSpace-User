@@ -12,6 +12,8 @@ class MongoDatabase {
   static const String resourceCollectionName = "resources";
   static const String cartCollectionName = "cart";
   static const String orderCollectionName = "orders";
+  static const String instituteCollectionName = "institutes";
+  static const String departmentCollectionName = "departments";
   // Method to connect to the MongoDB database
   static Future<String> connect() async {
     try {
@@ -131,6 +133,12 @@ class MongoDatabase {
     }
   }
 
+  static DateTime getISTDateTime(DateTime utcTime) {
+    return utcTime
+        .toUtc()
+        .add(Duration(hours: 5, minutes: 30)); // Convert UTC to IST
+  }
+
   static Future<Map<String, dynamic>?> getUserById(String userId) async {
     try {
       await _ensureConnection();
@@ -194,7 +202,11 @@ class MongoDatabase {
     try {
       await _ensureConnection();
       var collection = db.collection(resourceCollectionName);
-      return await collection.find(where.eq('availability', true)).toList();
+      return await collection
+          .find(where
+              .eq('availability', true)
+              .sortBy('createdAt', descending: true))
+          .toList();
     } catch (e) {
       throw Exception('Failed to fetch resources: $e');
     }
@@ -389,9 +401,11 @@ class MongoDatabase {
   }
 
   // Updated booking method with rollback on failure
-  static Future<String> bookResource(String resourceId) async {
+  static Future<String> bookResource(
+      String resourceId, DateTime startDate, DateTime endDate) async {
     try {
-      print('Booking resource with ID: $resourceId');
+      print(
+          'Booking resource with ID: $resourceId from $startDate to $endDate');
 
       await _ensureConnection();
       print('MongoDB connection established for resource booking.');
@@ -401,11 +415,13 @@ class MongoDatabase {
         throw Exception('Invalid resourceId: Expected 24 characters.');
       }
 
+      // Accessing the collection where the resources are stored
       var collection = db.collection(resourceCollectionName);
+
+      // Updating the resource availability and setting the start and end dates
       var result = await collection.updateOne(
-        where.eq('_id', ObjectId.fromHexString(resourceId)),
-        modify.set('availability', false),
-      );
+          where.eq('_id', ObjectId.fromHexString(resourceId)),
+          modify.set('availability', false));
 
       if (result.isAcknowledged && result.nModified > 0) {
         print('Resource booked successfully.');
@@ -422,22 +438,25 @@ class MongoDatabase {
   }
 
 // Updated method to save order instead of booking
-  static Future<String> saveOrder(
-      String userId, List<String> resourceIds, double totalAmount) async {
+  static Future<String> saveOrder(String userId, List<String> resourceIds,
+      double totalAmount, DateTime startDate, DateTime endDate) async {
     try {
-      // Log entering the method
-      print('Entering saveOrder method for userId: $userId');
-
-      // Ensure MongoDB connection is established
       await _ensureConnection();
       print('MongoDB connection is active.');
 
-      // Validate userId
       if (!_validateObjectId(userId)) {
         print('Invalid userId: Expected 24 characters.');
         throw Exception('Invalid userId: Expected 24 characters.');
       }
-
+      double duration = endDate.difference(startDate).inDays + 1;
+      if (duration <= 0) {
+        throw Exception('Invalid date range: endDate must be after startDate.');
+      }
+      totalAmount = totalAmount * duration;
+      // Convert startDate, endDate, and current date to IST
+      startDate = getISTDateTime(startDate); // Convert to IST
+      endDate = getISTDateTime(endDate); // Convert to IST
+      DateTime currentDate = getISTDateTime(DateTime.now());
       // Prepare order data for the orders collection
       var orderData = {
         'user_id': ObjectId.fromHexString(userId),
@@ -447,39 +466,69 @@ class MongoDatabase {
         'date': DateTime.now(),
         'total_amount': totalAmount,
         'payment_status': 'Completed',
+        'start_date': startDate, // Add start date
+        'end_date': endDate, // Add end date
       };
 
-      print('Prepared order data: $orderData');
-
-      // Insert the order into the orders collection
+      // Initialize collections
       var orderCollection = db.collection(orderCollectionName);
+      var userCollection = db.collection(userCollectionName);
+      var instituteCollection = db.collection(instituteCollectionName);
+      var departmentCollection = db.collection(departmentCollectionName);
+      var resourceCollection = db.collection(resourceCollectionName);
+
       var orderResult = await orderCollection.insertOne(orderData);
 
       if (orderResult.isAcknowledged) {
-        // Log successful order insertion
         print('Order saved successfully!');
-
-        // Get the inserted order's ID
         var orderId = orderResult.id;
 
-        // Update the user's booking array with the order reference
-        var userCollection = db.collection(userCollectionName);
         var updateResult = await userCollection.updateOne(
           where.id(ObjectId.fromHexString(userId)),
-          modify.push('bookings', {
-            'order_id': orderId,
-            'date': DateTime.now(),
-            'total_amount': totalAmount,
-          }),
+          modify.push('bookings', {'order_id': orderId}),
         );
 
         if (updateResult.isAcknowledged && updateResult.nModified > 0) {
           print('User booking history updated successfully!');
-          return 'Order and user booking history saved successfully!';
         } else {
-          print('Failed to update user booking history.');
-          return 'Order saved, but failed to update user booking history.';
+          print('Order saved, but failed to update user booking history.');
         }
+
+        for (var resourceId in resourceIds) {
+          var resource = await resourceCollection
+              .findOne(where.id(ObjectId.fromHexString(resourceId)));
+          if (resource != null) {
+            var instituteId = resource['institute_id'];
+            var departmentId = resource['department_id'];
+            print('Fetched institute ID: $instituteId');
+            print('Fetched department ID: $departmentId');
+            instituteId = instituteId
+                .toString()
+                .replaceAll('ObjectId("', '')
+                .replaceAll('")', '');
+            departmentId = departmentId
+                .toString()
+                .replaceAll('ObjectId("', '')
+                .replaceAll('")', '');
+            if (instituteId != null) {
+              await instituteCollection.updateOne(
+                where.id(ObjectId.fromHexString(instituteId.toString())),
+                modify.push('orders', orderId),
+              );
+              print('Order added to institute.');
+            }
+
+            if (departmentId != null) {
+              await departmentCollection.updateOne(
+                where.id(ObjectId.fromHexString(departmentId.toString())),
+                modify.push('orders', orderId),
+              );
+              print('Order added to department.');
+            }
+          }
+        }
+
+        return 'Order and references updated successfully!';
       } else {
         print('Failed to save order!');
         return 'Failed to save order!';
@@ -501,6 +550,7 @@ class MongoDatabase {
       }
 
       var orderCollection = db.collection(orderCollectionName);
+
       return await orderCollection
           .find(where.eq('user_id', ObjectId.fromHexString(userId)))
           .toList();

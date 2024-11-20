@@ -4,8 +4,13 @@ import '../orders/cart_page.dart';
 class CartButton extends StatelessWidget {
   final String userId;
   final Map<String, dynamic> user;
+  final Map<String, dynamic> resource;
 
-  const CartButton({super.key, required this.userId, required this.user});
+  const CartButton(
+      {super.key,
+      required this.userId,
+      required this.user,
+      required this.resource});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +20,10 @@ class CartButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CartPage(userId: userId, user: user)),
+              builder: (context) => CartPage(
+                    userId: userId,
+                    user: user,
+                  )),
         );
       },
     );
