@@ -115,7 +115,6 @@ Contributions are what make the open-source community such a fantastic place to 
 Distributed under the MIT License. See LICENSE for more information.
 
 **C**ontact**
-Your Name - nishikanair23@gmail.com
 Project Link: https://github.com/code-raj11903/UniSpace-User
 
 ### Additional Points:
